@@ -1,8 +1,5 @@
 package com.androidproductions.myfinances;
 
-/**
- * Created by scott.jones on 01/11/13.
- */
 public final class Actions {
     public static final int AccountSummary = 0;
     public static final int ScheduledTransactions = 1;

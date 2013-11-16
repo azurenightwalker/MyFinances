@@ -2,7 +2,7 @@ package com.androidproductions.myfinances.data;
 
 import android.net.Uri;
 
-public class TransactionContract {
+public final class TransactionContract {
 
     public static final String _ID = "_id";
     public static final String Date = "date";

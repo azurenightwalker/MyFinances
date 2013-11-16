@@ -2,7 +2,7 @@ package com.androidproductions.myfinances.data;
 
 import android.net.Uri;
 
-public class AccountContract {
+public final class AccountContract {
 
     public static final String _ID = "_id";
     public static final String Name = "name";

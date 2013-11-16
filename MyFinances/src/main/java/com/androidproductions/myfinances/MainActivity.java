@@ -1,6 +1,6 @@
 package com.androidproductions.myfinances;
 
-import android.content.ContentValues;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -10,7 +10,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.widget.DrawerLayout;
 
-import com.androidproductions.myfinances.data.AccountContract;
+import com.androidproductions.myfinances.data.Account;
+import com.androidproductions.myfinances.data.AccountsHelper;
 import com.androidproductions.myfinances.fragments.*;
 
 public class MainActivity extends ActionBarActivity
@@ -25,6 +26,7 @@ public class MainActivity extends ActionBarActivity
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+    private Account mAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +41,28 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-        /*ContentValues cv = new ContentValues();
-        cv.put(AccountContract.Name,"Test");
-        cv.put(AccountContract.Balance,99);
-        cv.put(AccountContract.Overdraft,500);
-        getContentResolver().insert(AccountContract.CONTENT_URI,cv);*/
+        mAccount = AccountsHelper.getCurrentAccount(this);
+        if (mAccount == null)
+            FirstRun();
+        else
+        {
+            mNavigationDrawerFragment.updateAccountList();
+            mNavigationDrawerFragment.setAccount(mAccount);
+        }
+    }
+
+    private void FirstRun() {
+        startActivityForResult(new Intent(this,FirstRun.class),99);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        mNavigationDrawerFragment.updateAccountList();
+        mAccount = AccountsHelper.getCurrentAccount(this);
+        if (mAccount == null)
+            FirstRun();
+        else
+            mNavigationDrawerFragment.setAccount(mAccount);
     }
 
     @Override

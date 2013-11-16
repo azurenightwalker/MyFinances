@@ -1,19 +1,14 @@
 package com.androidproductions.myfinances.fragments;
 
-import android.content.ContentUris;
-import android.content.Context;
-import android.database.Cursor;
-import android.support.v7.app.ActionBarActivity;;
 import android.app.Activity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SimpleCursorAdapter;
@@ -32,6 +26,7 @@ import android.widget.Toast;
 
 import com.androidproductions.myfinances.NavigationDrawerCallbacks;
 import com.androidproductions.myfinances.R;
+import com.androidproductions.myfinances.data.Account;
 import com.androidproductions.myfinances.data.AccountContract;
 
 /**
@@ -47,12 +42,6 @@ public class NavigationDrawerFragment extends Fragment {
     private static final String STATE_SELECTED_POSITION = "selected_navigation_drawer_position";
 
     /**
-     * Per the design guidelines, you should show the drawer on launch until the user manually
-     * expands it. This shared preference tracks this.
-     */
-    private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
-
-    /**
      * A pointer to the current callbacks instance (the Activity).
      */
     private NavigationDrawerCallbacks mCallbacks;
@@ -66,12 +55,11 @@ public class NavigationDrawerFragment extends Fragment {
     private ListView mDrawerListView;
     private View mFragmentContainerView;
 
-    private int mCurrentSelectedPosition = 0;
+    private int mCurrentSelectedPosition;
     private boolean mFromSavedInstanceState;
-    private boolean mUserLearnedDrawer;
     private RelativeLayout mDrawerView;
-    private TextView mSummaryText;
     private Spinner mAccountSpinner;
+    private TextView mSummaryText;
 
     public NavigationDrawerFragment() {
     }
@@ -79,11 +67,6 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Read in the flag indicating whether or not the user has demonstrated awareness of the
-        // drawer. See PREF_USER_LEARNED_DRAWER for details.
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
 
         if (savedInstanceState != null) {
             mCurrentSelectedPosition = savedInstanceState.getInt(STATE_SELECTED_POSITION);
@@ -102,8 +85,7 @@ public class NavigationDrawerFragment extends Fragment {
             Bundle savedInstanceState) {
         mDrawerView = (RelativeLayout) inflater.inflate(
                 R.layout.fragment_navigation_drawer, container, false);
-
-        mDrawerListView = (ListView) mDrawerView.findViewById(R.id.listView);
+        setupReferences();
         mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -117,30 +99,24 @@ public class NavigationDrawerFragment extends Fragment {
                 getResources().getStringArray(R.array.actions)));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
 
-        mAccountSpinner = (Spinner) mDrawerView.findViewById(R.id.accountSpinner);
-        mAccountSpinner.setAdapter(new SimpleCursorAdapter(getActivity(),
-                android.R.layout.simple_dropdown_item_1line,
-                getActivity().getContentResolver().query(AccountContract.CONTENT_URI,null,null,null,null),
-                new String[] { AccountContract.Name},
-                new int[] { android.R.id.text1 }));
-
-        mSummaryText = (TextView) mDrawerView.findViewById(R.id.summaryView);
-        String text = "";
-        Cursor cur = getActivity().getContentResolver().query(ContentUris.withAppendedId(AccountContract.CONTENT_URI,mAccountSpinner.getSelectedItemId()),null,null,null,null);
-        if (cur != null)
-        {
-            if (cur.moveToFirst())
-            {
-                text += cur.getString(cur.getColumnIndex(AccountContract.Name)) + ": £";
-                int balance = cur.getInt(cur.getColumnIndex(AccountContract.Balance));
-                int od = cur.getInt(cur.getColumnIndex(AccountContract.Overdraft));
-                text += String.valueOf(balance) + " (£" + String.valueOf(balance + od) + " available)";
-            }
-            cur.close();
-        }
-        mSummaryText.setText(text);
+        updateAccountList();
 
         return mDrawerView;
+    }
+
+    public void updateAccountList() {
+        mAccountSpinner.setAdapter(new SimpleCursorAdapter(getActivity(),
+                android.R.layout.simple_dropdown_item_1line,
+                getActivity().getContentResolver().query(AccountContract.CONTENT_URI, null, null, null, null),
+                new String[]{AccountContract.Name},
+                new int[]{android.R.id.text1}));
+    }
+
+    private void setupReferences()
+    {
+        mDrawerListView = (ListView) mDrawerView.findViewById(R.id.listView);
+        mAccountSpinner = (Spinner) mDrawerView.findViewById(R.id.accountSpinner);
+        mSummaryText = (TextView) mDrawerView.findViewById(R.id.summaryView);
     }
 
     public boolean isDrawerOpen() {
@@ -191,22 +167,11 @@ public class NavigationDrawerFragment extends Fragment {
                     return;
                 }
 
-                if (!mUserLearnedDrawer) {
-                    // The user manually opened the drawer; store this flag to prevent auto-showing
-                    // the navigation drawer automatically in the future.
-                    mUserLearnedDrawer = true;
-                    SharedPreferences sp = PreferenceManager
-                            .getDefaultSharedPreferences(getActivity());
-                    sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
-                }
-
                 getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
             }
         };
 
-        // If the user hasn't 'learned' about the drawer, open it to introduce them to the drawer,
-        // per the navigation drawer design guidelines.
-        if (!mUserLearnedDrawer && !mFromSavedInstanceState) {
+        if (!mFromSavedInstanceState) {
             mDrawerLayout.openDrawer(mFragmentContainerView);
         }
 
@@ -305,4 +270,14 @@ public class NavigationDrawerFragment extends Fragment {
     }
 
 
+    public void setAccount(Account mAccount) {
+        mSummaryText.setText(mAccount.toString());
+        for (int i = 0; i < mAccountSpinner.getCount(); i++) {
+            long itemIdAtPosition2 = mAccountSpinner.getItemIdAtPosition(i);
+            if (itemIdAtPosition2 == mAccount.getId()) {
+                mAccountSpinner.setSelection(i);
+                break;
+            }
+        }
+    }
 }

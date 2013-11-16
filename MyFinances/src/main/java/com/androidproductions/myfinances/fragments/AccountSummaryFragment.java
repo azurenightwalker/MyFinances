@@ -26,8 +26,7 @@ public class AccountSummaryFragment extends Fragment {
      * number.
      */
     public static AccountSummaryFragment newInstance() {
-        AccountSummaryFragment fragment = new AccountSummaryFragment();
-        return fragment;
+        return new AccountSummaryFragment();
     }
 
     public AccountSummaryFragment() {
