@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="actions">
+        <item>Summary</item>
+        <item>Scheduled Transactions</item>
+        <item>Incoming Transactions</item>
+        <item>Outgoing Transactions</item>
+        <item>Budgeting</item>
+        <item>Add New</item>
+        <item>Alerts</item>
+        <item>Accounts</item>
+    </string-array>
+</resources>
